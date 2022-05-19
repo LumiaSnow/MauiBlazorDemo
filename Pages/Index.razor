@@ -1,0 +1,74 @@
+﻿@page "/"
+
+@inject IMediaPicker _mediaPicker
+@inject IFileSystem _fileSystem
+
+<h1>Hello, world!</h1>
+
+Welcome to your new app.
+
+<SurveyPrompt Title="How is Blazor working for you?" />
+
+
+<button class="btn btn-primary" @onclick="TakePhoto">拍照</button>
+<button class="btn btn-primary" @onclick="Enumerate">遍历文件</button>
+<button class="btn btn-primary" @onclick="CurrentDir">当前目录</button>
+
+@code {
+    private void CurrentDir()
+    {
+        var currentDir = Environment.CurrentDirectory;
+        Console.WriteLine(currentDir);
+    }
+
+    private void enumerate(string dirPath)
+    {
+        Console.WriteLine("Dir" + dirPath);
+        var files = Directory.EnumerateFiles(dirPath);
+        foreach (var f in files)
+            if (!f.Contains("__")) Console.WriteLine(f);
+        var dirs = Directory.EnumerateDirectories(dirPath);
+        foreach (var d in dirs)
+            if (!d.Contains("__")) enumerate(d);
+    }
+
+    private void Enumerate()
+    {
+        try
+        {
+            var cachePath = _fileSystem.CacheDirectory;
+            var appDataPath = _fileSystem.AppDataDirectory;
+            Console.WriteLine("EnumerateDirectories cacheDirs");
+            enumerate(cachePath);
+            Console.WriteLine("EnumerateDirectories appDataDirs");
+            enumerate(appDataPath);
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine(ex.Message);
+        }
+    }
+
+    private async Task TakePhoto()
+    {
+        try
+        {
+            if (!_mediaPicker.IsCaptureSupported)
+                return;
+            var file = await _mediaPicker.CapturePhotoAsync();
+            if (file != null)
+            {
+                Console.WriteLine(file.FileName);
+                Console.WriteLine(file.FullPath);
+                var destFilePath = Path.Combine("/storage/emulated/0/DCIM/", file.FileName);
+                File.Move(file.FullPath, destFilePath);
+            }
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine(ex.Message);
+        }
+
+    }
+
+}
