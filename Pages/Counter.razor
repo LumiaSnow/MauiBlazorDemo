@@ -1,4 +1,7 @@
 ﻿@page "/counter"
+@using System.Linq
+@using MauiApp2.Repositories
+@inject LogRepository _logRepository
 
 <h1>Counter</h1>
 
@@ -6,11 +9,42 @@
 
 <button class="btn btn-primary" @onclick="IncrementCount">Click me</button>
 
+
+
+
 @code {
     private int currentCount = 0;
 
     private void IncrementCount()
     {
         currentCount++;
+    }
+
+    public override async Task SetParametersAsync(ParameterView parameters)
+    {
+        await _logRepository.LogDebugAsync("Razor SetParametersAsync", $"Start {parameters.GetEnumerator().Current.Name} {parameters.GetEnumerator().Current.Value}");
+        await base.SetParametersAsync(parameters);
+        await _logRepository.LogDebugAsync("Razor SetParametersAsync", $"End {parameters.GetEnumerator().Current.Name} {parameters.GetEnumerator().Current.Value}");
+    }
+
+    protected override async Task OnInitializedAsync()
+    {
+        await _logRepository.LogDebugAsync("Razor OnInitializedAsync", $"Start");
+        await base.OnInitializedAsync();
+        await _logRepository.LogDebugAsync("Razor OnInitializedAsync", $"End");
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        await _logRepository.LogDebugAsync("Razor OnAfterRenderAsync", $"Start {firstRender}");
+        await base.OnAfterRenderAsync(firstRender);
+        await _logRepository.LogDebugAsync("Razor OnAfterRenderAsync", $"End {firstRender}");
+    }
+
+    protected override async Task OnParametersSetAsync()
+    {
+        await _logRepository.LogDebugAsync("Razor OnParametersSetAsync", $"Start");
+        await base.OnParametersSetAsync();
+        await _logRepository.LogDebugAsync("Razor OnParametersSetAsync", $"End");
     }
 }

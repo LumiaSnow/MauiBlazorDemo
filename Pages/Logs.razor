@@ -1,0 +1,59 @@
+﻿@page "/logs"
+@inject LogRepository _logRepository
+@using MauiApp2.Models
+@using MauiApp2.Repositories
+@using Microsoft.EntityFrameworkCore
+
+<h1>Logs</h1>
+
+<MudTable Items="@logs" RowsPerPage="100" Dense="true" Hover="true" Bordered="false" Striped="false" Filter="new Func<Log, bool>(FilterFunc1)">
+    <ToolBarContent>
+        <MudText Typo="Typo.h6">Logs</MudText>
+        <MudSpacer />
+        <MudTextField @bind-Value="searchString1" Placeholder="Search" Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.Search" IconSize="Size.Medium" Class="mt-0"></MudTextField>
+    </ToolBarContent>
+    <HeaderContent>
+        <MudTh>Id</MudTh>
+        <MudTh>Func</MudTh>
+        <MudTh>Content</MudTh>
+    </HeaderContent>
+    <RowTemplate>
+        <MudTd DataLabel="Id">@context.Id</MudTd>
+        <MudTd DataLabel="Func">@context.Func</MudTd>
+        <MudTd DataLabel="Content">@context.Content</MudTd>
+    </RowTemplate>
+    <PagerContent>
+        <MudTablePager />
+    </PagerContent>
+</MudTable>
+
+
+
+
+@code {
+    private List<Log> logs;
+
+    private string title = "";
+    private string content = "";
+
+    protected override async Task OnInitializedAsync()
+    {
+        await fetch();
+    }
+
+    private async Task fetch()
+    {
+        logs = await _logRepository.GetAsync();
+    }
+
+    private string searchString1 { get; set; }
+    private bool FilterFunc1(Log element) => FilterFunc(element, searchString1);
+    private bool FilterFunc(Log element, string searchString)
+    {
+        if (string.IsNullOrWhiteSpace(searchString))
+            return true;
+        if ($"{element.Id} {element.Func} {element.Content}".Contains(searchString, StringComparison.OrdinalIgnoreCase))
+            return true;
+        return false;
+    }
+}

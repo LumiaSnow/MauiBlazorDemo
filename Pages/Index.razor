@@ -9,12 +9,48 @@ Welcome to your new app.
 
 <SurveyPrompt Title="How is Blazor working for you?" />
 
-
+@*<button class="btn btn-primary" @onclick="ScanQR">扫码</button>*@
 <button class="btn btn-primary" @onclick="TakePhoto">拍照</button>
+<button class="btn btn-primary" @onclick="TakeVedio">拍摄</button>
 <button class="btn btn-primary" @onclick="Enumerate">遍历文件</button>
 <button class="btn btn-primary" @onclick="CurrentDir">当前目录</button>
+<br/>
+@qrValue
+
+@if(showScanQR){
+    @*<BarcodeReader ScanResult="ScanResult" ShowScanBarcode="showScanQR" Close="CloseScanQR"></BarcodeReader>*@
+@*    <BarcodeReader ScanResult="((e) => { qrValue=e; showScanQR = !showScanQR; })"
+                   Close="(()=>showScanQR=!showScanQR)"
+                   OnError="OnError" />*@
+}
 
 @code {
+
+    bool showScanQR { get; set; }
+    string qrValue{ get; set; }
+
+    private void ScanQR()
+    {
+        showScanQR = true;
+    }
+
+    private void CloseScanQR()
+    {
+        showScanQR = false;
+    }
+
+    private void ScanResult(string qr)
+    {
+        this.qrValue = qr;
+    }
+
+    private Task OnError(string message)
+    {
+        qrValue = message;
+        StateHasChanged();
+        return Task.CompletedTask;
+    }
+
     private void CurrentDir()
     {
         var currentDir = Environment.CurrentDirectory;
@@ -56,6 +92,28 @@ Welcome to your new app.
             if (!_mediaPicker.IsCaptureSupported)
                 return;
             var file = await _mediaPicker.CapturePhotoAsync();
+            if (file != null)
+            {
+                Console.WriteLine(file.FileName);
+                Console.WriteLine(file.FullPath);
+                var destFilePath = Path.Combine("/storage/emulated/0/DCIM/", file.FileName);
+                File.Move(file.FullPath, destFilePath);
+            }
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine(ex.Message);
+        }
+
+    }
+
+    private async Task TakeVedio()
+    {
+        try
+        {
+            if (!_mediaPicker.IsCaptureSupported)
+                return;
+            var file = await _mediaPicker.CaptureVideoAsync();
             if (file != null)
             {
                 Console.WriteLine(file.FileName);

@@ -1,0 +1,74 @@
+﻿@page "/sqlite"
+@inject MyDbContext _dbContext
+@using MauiApp2.Models
+@using Microsoft.EntityFrameworkCore
+
+<h1>sqlite</h1>
+
+<MudTextField @bind-Value="title" Label="title" Variant="Variant.Outlined"></MudTextField>
+<MudTextField @bind-Value="content" Label="content" Variant="Variant.Outlined"></MudTextField>
+
+<MudFab Color="Color.Primary" StartIcon="@Icons.Material.Filled.Add" Label="Insert" @onclick="Insert" />
+
+<MudTable Items="@blogs" RowsPerPage="3" Dense="true" Hover="true" Bordered="false" Striped="false" Filter="new Func<Blog, bool>(FilterFunc1)">
+    <ToolBarContent>
+        <MudText Typo="Typo.h6">Blogs</MudText>
+        <MudSpacer />
+        <MudTextField @bind-Value="searchString1" Placeholder="Search" Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.Search" IconSize="Size.Medium" Class="mt-0"></MudTextField>
+    </ToolBarContent>
+    <HeaderContent>
+        <MudTh>Id</MudTh>
+        <MudTh>Title</MudTh>
+        <MudTh>Content</MudTh>
+    </HeaderContent>
+    <RowTemplate>
+        <MudTd DataLabel="Id">@context.Id</MudTd>
+        <MudTd DataLabel="Title">@context.Title</MudTd>
+        <MudTd DataLabel="Content">@context.Content</MudTd>
+    </RowTemplate>
+    <PagerContent>
+        <MudTablePager />
+    </PagerContent>
+</MudTable>
+
+
+
+
+@code {
+    private Blog[] blogs;
+
+    private string title = "";
+    private string content = "";
+
+    protected override async Task OnInitializedAsync()
+    {
+        await fetch();
+    }
+
+    private async Task Insert()
+    {
+        await _dbContext.AddAsync(new Blog()
+            {
+                Title = title,
+                Content = content
+            });
+        await _dbContext.SaveChangesAsync();
+        await fetch();
+    }
+
+    private async Task fetch()
+    {
+        blogs = await _dbContext.Set<Blog>().ToArrayAsync();
+    }
+
+    private string searchString1 { get; set; }
+    private bool FilterFunc1(Blog element) => FilterFunc(element, searchString1);
+    private bool FilterFunc(Blog element, string searchString)
+    {
+        if (string.IsNullOrWhiteSpace(searchString))
+            return true;
+        if ($"{element.Id} {element.Title} {element.Content}".Contains(searchString, StringComparison.OrdinalIgnoreCase))
+            return true;
+        return false;
+    }
+}
